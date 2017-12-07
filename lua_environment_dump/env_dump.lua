@@ -114,14 +114,14 @@ env.info('*** LUA _G DUMP TABLE SETUP *** ')
 
 --[[
 local systemf = {
-    "_G",						"_ARCHITECTURE", 	"_VERSION",	"assert",		"collectgarbage",
-    "coroutine",		"debug",					"dofile",		"error",		"gcinfo",
-    "getfenv",			"getmetatable",		"ipairs",		"load",			"loadfile",
-    "loadstring",		"log",						"math",			"module",		"newproxy",
-    "next",					"package",				"pairs",		"pcall",		"print",
-    "rawequal",			"rawget",					"rawset",		"select",		"setfenv",
-    "setmetatable",	"string",					"table",		"tonumber",	"tostring",
-    "type",					"unpack",					"xpcall"
+    "_G",           "_ARCHITECTURE",  "_VERSION", "assert",   "collectgarbage",
+    "coroutine",    "debug",          "dofile",   "error",    "gcinfo",
+    "getfenv",      "getmetatable",   "ipairs",   "load",     "loadfile",
+    "loadstring",   "log",            "math",     "module",   "newproxy",
+    "next",         "package",        "pairs",    "pcall",    "print",
+    "rawequal",     "rawget",         "rawset",   "select",   "setfenv",
+    "setmetatable", "string",         "table",    "tonumber", "tostring",
+    "type",         "unpack",         "xpcall"
   }
 
 for k,v in pairs(systemf) do
@@ -132,14 +132,14 @@ local syst = tableset(systemf)
 ]]--
 
 local syst = tableset({
-    "_G",						"_ARCHITECTURE", 	"_VERSION",	"assert",		"collectgarbage",
-    "coroutine",		"debug",					"dofile",		"error",		"gcinfo",
-    "getfenv",			"getmetatable",		"ipairs",		"load",			"loadfile",
-    "loadstring",		"log",						"math",			"module",		"newproxy",
-    "next",					"package",				"pairs",		"pcall",		"print",
-    "rawequal",			"rawget",					"rawset",		"select",		"setfenv",
-    "setmetatable",	"string",					"table",		"tonumber",	"tostring",
-    "type",					"unpack",					"xpcall"
+    "_G",           "_ARCHITECTURE",  "_VERSION", "assert",   "collectgarbage",
+    "coroutine",    "debug",          "dofile",   "error",    "gcinfo",
+    "getfenv",      "getmetatable",   "ipairs",   "load",     "loadfile",
+    "loadstring",   "log",            "math",     "module",   "newproxy",
+    "next",         "package",        "pairs",    "pcall",    "print",
+    "rawequal",     "rawget",         "rawset",   "select",   "setfenv",
+    "setmetatable", "string",         "table",    "tonumber", "tostring",
+    "type",         "unpack",         "xpcall"
   })
 
 --[[
