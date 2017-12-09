@@ -18,10 +18,11 @@ basicSerialize = function(s)
   end
 end
 
-tableShow = function(tbl, reserved_indexes, ignore_G, prefix, indent, tableshow_tbls) --based on serialize_slmod, this is a _G serialization
+tableShow = function(tbl, track, track_tbl, track_lvl, reserved_indexes, ignore_G, prefix, indent, tableshow_tbls) --based on serialize_slmod, this is a _G serialization
   tableshow_tbls = tableshow_tbls or {} --create table of tables
   prefix         = prefix or ""
   indent         = indent or ""
+  track_lvl      = track_lvl or {}
 
   if type(tbl) == 'table' then --function only works for tables!
     tableshow_tbls[tbl] = prefix
@@ -37,6 +38,14 @@ tableShow = function(tbl, reserved_indexes, ignore_G, prefix, indent, tableshow_
       -- don't explore _G data for obvious stuff (like standard Lua functions/features)
       if ((prefix == "") and (reserved_indexes[ind])) then
       else
+
+        --add index to our tracking table if we're tracking
+        if track then
+
+
+          track_tbl[][][][ind] = true
+        end
+
 
         if type(ind) == "number" then
   -- is this section redundant with following section because basicSerialize already handles number type in the same manner?
@@ -127,11 +136,11 @@ env.info('*** LUA _G DUMP TABLE SETUP *** ')
 --
 local syst = tableset({
     "_G",           "_ARCHITECTURE",  "_VERSION", "assert",   "collectgarbage",
-    "coroutine",    "debug",          "dofile",   "ED_FINAL_VERSION",     "error",    "gcinfo",
+    "coroutine",    "debug",          "dofile",   "error",    "gcinfo",
     "getfenv",      "getmetatable",   "io",       "ipairs",   "lfs",      "load",     "loadfile",
     "loadstring",   "log",            "math",     "module",   "newproxy",
     "next",         "os",             "package",        "pairs",    "pcall",    "print",
-    "rawequal",     "rawget",         "rawset",   "select",   "setfenv",
+    "rawequal",     "rawget",         "rawset",   "require",  "select",   "setfenv",
     "setmetatable", "string",         "table",    "tonumber", "tostring",
     "type",         "unpack",         "xpcall"
   })
