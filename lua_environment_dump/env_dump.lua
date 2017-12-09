@@ -10,6 +10,7 @@ basicSerialize = function(s)
     if ((type(s) == 'number') or (type(s) == 'boolean') or (type(s) == 'function') or (type(s) == 'table') or (type(s) == 'userdata') ) then
       return tostring(s)
     elseif type(s) == 'string' then
+-- removed quotations from strings for better readability
 --      s = string.format('%q', s)
       return s
 --might need to add default else for case where type is novel or undefined
@@ -17,7 +18,7 @@ basicSerialize = function(s)
   end
 end
 
-tableShow = function(tbl, ignore_G, prefix, indent, tableshow_tbls) --based on serialize_slmod, this is a _G serialization
+tableShow = function(tbl, reserved_indexes, ignore_G, prefix, indent, tableshow_tbls) --based on serialize_slmod, this is a _G serialization
   tableshow_tbls = tableshow_tbls or {} --create table of tables
   prefix         = prefix or ""
   indent         = indent or ""
@@ -27,34 +28,27 @@ tableShow = function(tbl, ignore_G, prefix, indent, tableshow_tbls) --based on s
 
     local tbl_str = {}
 
-    tbl_str[#tbl_str + 1] = indent .. '{\n'
-if prefix ~= "" then prefix = prefix .. "." end
+-- removed indent for opening braces
+--    tbl_str[#tbl_str + 1] = indent .. '{\n'
+    tbl_str[#tbl_str + 1] = '{\n'
 
     for ind,val in pairs(tbl) do -- serialize its fields
---      if prefix == "" then env.info(tostring(ind)) end
---      if (string.format('%q', ind) ~= "\"_G\"") and (prefix == "") then env.info("FOUND: " .. ind) end
-      --if (string.format('%q', ind) == "\"_G\"") and (prefix == "") then
-      --if (string.format('%q', ind) == "\"_G\"") then
---      if (string.find(string.format('%q', ind), "\"_G\"")) then
---      else
 
-if prefix == "" then env.info(tostring(ind)) end
+      -- don't explore _G data for obvious stuff (like standard Lua functions/features)
+      if ((prefix == "") and (reserved_indexes[ind])) then
+      else
 
         if type(ind) == "number" then
   -- is this section redundant with following section because basicSerialize already handles number type in the same manner?
           tbl_str[#tbl_str + 1] = indent
---          tbl_str[#tbl_str + 1] = prefix .. '['
-          tbl_str[#tbl_str + 1] = prefix
+          tbl_str[#tbl_str + 1] = prefix .. '['
           tbl_str[#tbl_str + 1] = tostring(ind)
---          tbl_str[#tbl_str + 1] = '] = '
-          tbl_str[#tbl_str + 1] = ' = '
+          tbl_str[#tbl_str + 1] = '] = '
         else
           tbl_str[#tbl_str + 1] = indent
---          tbl_str[#tbl_str + 1] = prefix .. '['
-          tbl_str[#tbl_str + 1] = prefix
+          tbl_str[#tbl_str + 1] = prefix .. '['
           tbl_str[#tbl_str + 1] = basicSerialize(ind)
---          tbl_str[#tbl_str + 1] = '] = '
-          tbl_str[#tbl_str + 1] = ' = '
+          tbl_str[#tbl_str + 1] = '] = '
         end
 
         if ignore_G[ind] ~= nil then
@@ -75,19 +69,10 @@ if prefix == "" then env.info(tostring(ind)) end
     --let's add some kind of alert for if this possibility actually occurs
               tbl_str[#tbl_str + 1] = tostring(val) .. ' already defined: ' .. tableshow_tbls[val] .. ',\n'
             else
---              tableshow_tbls[val] = prefix ..  '[' .. basicSerialize(ind) .. ']'
-              tableshow_tbls[val] = prefix ..  basicSerialize(ind)
+              tableshow_tbls[val] = prefix ..  '[' .. basicSerialize(ind) .. ']'
               tbl_str[#tbl_str + 1] = tostring(val) .. ' '
     --recurces here
---              tbl_str[#tbl_str + 1] = tableShow(val,  ignore_G, prefix .. '[' .. basicSerialize(ind).. ']', indent .. '    ', tableshow_tbls)
-              tbl_str[#tbl_str + 1] = tableShow(val,  ignore_G, prefix .. basicSerialize(ind), indent .. '    ', tableshow_tbls)
---[[
-              if (prefix == "") then
-                tbl_str[#tbl_str + 1] = tableShow(val,  ignore_G, basicSerialize(ind), indent .. '    ', tableshow_tbls)
-              else
-                tbl_str[#tbl_str + 1] = tableShow(val,  ignore_G, prefix .. '.' .. basicSerialize(ind), indent .. '    ', tableshow_tbls)
-              end
-]]--
+              tbl_str[#tbl_str + 1] = tableShow(val, reserved_indexes, ignore_G, prefix .. '[' .. basicSerialize(ind).. ']', indent .. '    ', tableshow_tbls)
               tbl_str[#tbl_str + 1] = ',\n'
             end
           elseif type(val) == 'function' then
@@ -119,6 +104,7 @@ if prefix == "" then env.info(tostring(ind)) end
     --not cool, watch for any of this
             tbl_str[#tbl_str + 1] = 'unable to serialize value type ' .. basicSerialize(type(val)) .. ' at index ' .. tostring(ind)
           end
+        end
       end
     end --for ind,val in pairs(tbl) do
 
@@ -136,85 +122,29 @@ end
 
 
 env.info('*** LUA _G DUMP TABLE SETUP *** ')
-
 --
 -- We don't want to know about these Lua system functions
 --
-
---[[
-local systemf = {
-    "_G",           "_ARCHITECTURE",  "_VERSION", "assert",   "collectgarbage",
-    "coroutine",    "debug",          "dofile",   "error",    "gcinfo",
-    "getfenv",      "getmetatable",   "ipairs",   "load",     "loadfile",
-    "loadstring",   "log",            "math",     "module",   "newproxy",
-    "next",         "package",        "pairs",    "pcall",    "print",
-    "rawequal",     "rawget",         "rawset",   "select",   "setfenv",
-    "setmetatable", "string",         "table",    "tonumber", "tostring",
-    "type",         "unpack",         "xpcall"
-  }
-
-for k,v in pairs(systemf) do
-  env.info(tostring(k) .. " " .. tostring(v))
-end
-
-local syst = tableset(systemf)
-]]--
-
 local syst = tableset({
     "_G",           "_ARCHITECTURE",  "_VERSION", "assert",   "collectgarbage",
-    "coroutine",    "debug",          "dofile",   "error",    "gcinfo",
-    "getfenv",      "getmetatable",   "ipairs",   "load",     "loadfile",
+    "coroutine",    "debug",          "dofile",   "ED_FINAL_VERSION",     "error",    "gcinfo",
+    "getfenv",      "getmetatable",   "io",       "ipairs",   "lfs",      "load",     "loadfile",
     "loadstring",   "log",            "math",     "module",   "newproxy",
-    "next",         "package",        "pairs",    "pcall",    "print",
+    "next",         "os",             "package",        "pairs",    "pcall",    "print",
     "rawequal",     "rawget",         "rawset",   "select",   "setfenv",
     "setmetatable", "string",         "table",    "tonumber", "tostring",
     "type",         "unpack",         "xpcall"
   })
 
---[[
-for k,v in pairs(syst) do
-  env.info(tostring(k) .. " " .. tostring(v))
-end
-]]--
-
---[[
-env.info('*** LUA _G DUMP SHOW_G *** ')
-
-for k,v in pairs(_G) do
---  if syst[k] == nil then
-    env.info(tostring(k) .. "[" .. type(k) .. "] :  " .. tostring(v) .. "[" .. type(v) .. "]")
---  end
-end
-
-]]--
-
 env.info('*** LUA TESTING TABLESHOW _G *** ')
-
---env.info(tableShow(_G))
-
 ignore_G = tableset({ "MissionScripting_G"})
-env.info("ignore_G: " .. table.concat(ignore_G))
-str = tableShow(_G, ignore_G)
---str = tableShow(ignore_G, ignore_G)
-
---[[
-
-lines = {}
-for s in str:gmatch("[^\r\n]+") do
-    table.insert(lines, s)
-end
-for k,v in pairs(lines) do
-  env.info(v)
-end
-]]--
+str = tableShow(_G, syst, ignore_G)
 
 env.info('*** LUA _G DUMP OPEN FILE *** ')
-
 fdir=lfs.writedir() .. "tableshow.txt"
 env.info(fdir)
 local file,err = io.open( fdir, "wb" )
 if err then return err end
-
 file:write( str )
 file:close()
 
