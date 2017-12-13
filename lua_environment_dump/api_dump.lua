@@ -119,6 +119,7 @@ end
 
 
 
+-- Looking to determine unique API keys, not enumerate all data
 tableAPIShow = function(tbl, reserved_indexes, ignore_G, tbl_track) --based on serialize_slmod, this is a _G serialization
   tbl_track = tbl_track or {}
 
@@ -126,7 +127,6 @@ tableAPIShow = function(tbl, reserved_indexes, ignore_G, tbl_track) --based on s
   if type(tbl) == 'table' then --function only works for tables!
 
     -- If all children are tables, test them for commonality.
-    -- Looking to determine unique API keys, not enumerate all data
     local parent_table_flag = true
     for ind,val in pairs(tbl) do
       if type(val) ~= 'table' then
@@ -144,7 +144,7 @@ tableAPIShow = function(tbl, reserved_indexes, ignore_G, tbl_track) --based on s
       for ind,val in pairs(tbl) do            -- loop through the top-level indexes again
         api_flag = true
         for sub_ind,sub_val in pairs(val) do  -- For each child table, store the names of the indexes
-          if child_table == {} then           -- First time though, create starting template view of typical child table
+          if child_table_flag == false then           -- First time though, create starting template view of typical child table
             child_table[sub_ind] = true
           elseif child_table[sub_ind] == nil then -- Otherwise, test this child table compared to the reference template
 --            env.info("compare failed, breaking loop1")
@@ -165,10 +165,14 @@ tableAPIShow = function(tbl, reserved_indexes, ignore_G, tbl_track) --based on s
 
     if api_flag == true then
       env.info("FOUND: " .. tostring(tbl))
+      local ind_save = nil
       for ind,val in pairs(tbl) do
         env.info("FOUND PARENT: " .. tostring(ind))
+        if ind_save == nil then
+          ind_save = val
+        end
       end
---      tableAPIShow(tbl[0], reserved_indexes, ignore_G)
+      tableAPIShow(ind_save, reserved_indexes, ignore_G)
     else
       for ind,val in pairs(tbl) do
         if ignore_G[ind] ~= nil then
