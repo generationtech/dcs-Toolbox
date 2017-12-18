@@ -120,15 +120,16 @@ end
 
 
 -- Looking to determine unique API keys, not enumerate all data
-tableAPIShow = function(tbl, reserved_indexes, ignore_G, tbl_track) --based on serialize_slmod, this is a _G serialization
-  tbl_track = tbl_track or {}
+tableAPIShow = function(table, index_reserved, index_ignored, table_track)
+  table_api = {}
+  table_track = table_track or {}
 
---  env.info("table: " .. tostring(tbl))
-  if type(tbl) == 'table' then
+--  env.info("table: " .. tostring(table))
+  if type(table) == 'table' then
 
     -- If all children are tables, test them for commonality.
     local parent_table_flag = true
-    for ind,val in pairs(tbl) do
+    for ind,val in pairs(table) do
       if type(val) ~= 'table' then
         parent_table_flag = false
         break
@@ -138,11 +139,11 @@ tableAPIShow = function(tbl, reserved_indexes, ignore_G, tbl_track) --based on s
     -- if all children are table type, check each of them for subordinate commonality
     local api_flag = false
     if parent_table_flag == true then
---      env.info("found parent: " .. tostring(tbl))
+--      env.info("found parent: " .. tostring(table))
       local child_table = {}
       local child_table_flag = false
       api_flag = true
-      for ind,val in pairs(tbl) do -- loop through the top-level indexes again
+      for ind,val in pairs(table) do -- loop through the top-level indexes again
         for sub_ind,sub_val in pairs(val) do -- For each child table, store the names of the indexes
           if child_table_flag == false then -- First time though, create starting template view of typical child table
             child_table[sub_ind] = true -- Store the indexes as a template table
@@ -160,39 +161,44 @@ tableAPIShow = function(tbl, reserved_indexes, ignore_G, tbl_track) --based on s
         child_table_flag = true
       end
     else
---      env.info("not found parent: " .. tostring(tbl))
+--      env.info("not found parent: " .. tostring(table))
     end
 
-    if api_flag == true then -- If everything gets to here, then this level is an API with matching child tables below
-      env.info("FOUND: " .. tostring(tbl))
-      local ind_save = nil
-      for ind,val in pairs(tbl) do
+    -- If everything gets to here, then this level is an API with matching child tables below
+    if api_flag == true then
+      env.info("FOUND: " .. tostring(table))
+--      local ind_save = nil
+      for ind,val in pairs(table) do
         env.info("FOUND PARENT: " .. tostring(ind))
-        if ind_save == nil then
-          ind_save = val
-        end
+        table_api["api"] = {}
+        table_api["api"][ind] = tableAPIShow(val, index_reserved, index_ignored, table_track)
       end
-      tableAPIShow(ind_save, reserved_indexes, ignore_G)
-    else -- This level is not an API level, determine how to process otherwise
-      for ind,val in pairs(tbl) do
-        if ignore_G[ind] ~= nil then
+    -- This level is not an API level, determine how to process otherwise
+    else
+      for ind,val in pairs(table) do
+        if index_ignored[ind] ~= nil then
           env.info("index part of ignore list, value is therefore ignored")
         else
           if type(val) == 'table' then
-            if tbl_track[val] then -- Have we already recursed this table?
+            if table_track[val] then -- Have we already recursed this table?
 
             else
-              tbl_track[val] = true
-              tableAPIShow(val, reserved_indexes, ignore_G, tbl_track)
+              table_track[val] = true
+              table_api["value"] = {}
+              table_api["value"][ind] = tableAPIShow(val, index_reserved, index_ignored, table_track)
             end
           else -- The children are not tables, they are values
-
+            table_api["value"] = {}
+            table_api["value"][ind] = val
           end
 --          env.info("recurse returned")
         end
       end
     end
+  else
+    return table
   end
+  return table_api
 end
 
 -- turn a simple list into a key/value true table for future lookups
@@ -206,7 +212,7 @@ end
 env.info('*** LUA _G DUMP TABLE SETUP *** ')
 
 -- We don't want to know about these Lua system functions
-local syst = tableset({
+local reserved_terms = tableset({
     "_G",
     "_ARCHITECTURE",
     "_VERSION",
@@ -252,15 +258,16 @@ local syst = tableset({
   })
 
 -- These indexex will not be recursed
-local ignore_G = tableset({
+local ignore_terms = tableset({
     "MissionScripting_G"
   })
 
 env.info('*** LUA TESTING TABLEAPI _G *** ')
-local str = tableAPIShow(_G, syst, ignore_G)
+local str = tableAPIShow(_G, reserved_terms, ignore_terms)
 
 env.info('*** LUA TESTING TABLESHOW _G *** ')
-local str1 = tableShow(_G, false, syst, ignore_G)
+--local str1 = tableShow(_G, false, reserved_terms, ignore_terms)
+local str1 = tableShow(str, false, reserved_terms, ignore_terms)
 
 env.info('*** LUA _G DUMP OPEN FILE *** ')
 local fdir = lfs.writedir() .. "tableshow.txt"
