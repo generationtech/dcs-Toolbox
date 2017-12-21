@@ -184,8 +184,8 @@ tableAPIShow = function(table, index_reserved, index_ignored, table_track)
 
             else
               table_track[val] = true
-              table_api["value"] = {}
-              table_api["value"][ind] = tableAPIShow(val, index_reserved, index_ignored, table_track)
+              table_api["tbl"] = {}
+              table_api["tbl"][ind] = tableAPIShow(val, index_reserved, index_ignored, table_track)
             end
           else -- The children are not tables, they are values
             table_api["value"] = {}
@@ -196,6 +196,8 @@ tableAPIShow = function(table, index_reserved, index_ignored, table_track)
       end
     end
   else
+    -- It's not a table, just return it.
+    -- Probably never use this portion because it's caught on upper level recurse and not called
     return table
   end
   return table_api
